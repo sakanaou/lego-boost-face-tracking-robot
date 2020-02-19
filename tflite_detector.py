@@ -1,5 +1,6 @@
 import logging
 import time
+import platform
 
 import tflite_runtime.interpreter as tflite
 import numpy as np
@@ -7,14 +8,27 @@ from PIL import Image
 
 from bounding_box import BoundingBox
 
+
+EDGETPU_SHARED_LIB = {
+  'Linux': 'libedgetpu.so.1',
+  'Darwin': 'libedgetpu.1.dylib',
+  'Windows': 'edgetpu.dll'
+}[platform.system()]
+
+
 class TFLiteDetector:
 
     def __init__(self, interestedClasses=[0], scoreThreshold=0.4):
-        self._interpreter = tflite.Interpreter(model_path = "coco_ssd_mobilenet_v1_1.0_quant_2018_06_29/detect.tflite")
+        self._interestedClasses = interestedClasses
+        self._scoreThreshold = scoreThreshold
+
+    def setup(self):
+        self._interpreter = self._setupInterpreter()
         self._interpreter.allocate_tensors()
         _, self._inputHeight, self._inputWidth, _ = self._interpreter.get_input_details()[0]['shape']
-        self._scoreThreshold = scoreThreshold
-        self._interestedClasses = interestedClasses
+
+    def _setupInterpreter(self):
+        return tflite.Interpreter(model_path="coco_ssd_mobilenet_v1_1.0_quant_2018_06_29/detect.tflite")
 
     def detect(self, image):
         resizedImage = Image.fromarray(image).resize((self._inputWidth, self._inputHeight), Image.ANTIALIAS)
@@ -57,3 +71,15 @@ class TFLiteDetector:
         output_details = self._interpreter.get_output_details()[index]
         tensor = np.squeeze(self._interpreter.get_tensor(output_details['index']))
         return tensor
+
+
+class EdgeTpuDetector(TFLiteDetector):
+
+    def __init__(self, interestedClasses=[0], scoreThreshold=0.4):
+        super().__init__(interestedClasses=interestedClasses, scoreThreshold=scoreThreshold)
+
+    def _setupInterpreter(self):
+        return tflite.Interpreter(model_path="coco_ssd_mobilenet_v1_1.0_quant_2018_06_29/detect.tflite",
+            experimental_delegates=[
+                tflite.load_delegate(EDGETPU_SHARED_LIB, {})
+            ])

@@ -7,7 +7,7 @@ from bounding_box import BoundingBox
 
 class CVDetector:
 
-    def __init__(self):
+    def setup(self):
         self._faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
     def detect(self, image):

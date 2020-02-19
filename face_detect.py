@@ -8,7 +8,7 @@ from matplotlib import pyplot
 from threading import Thread
 
 from cv_detector import CVDetector
-from tflite_detector import TFLiteDetector
+from tflite_detector import TFLiteDetector, EdgeTpuDetector
 from bounding_box import BoundingBox
 
 logging.basicConfig(level = logging.INFO)
@@ -17,6 +17,7 @@ currentImage = None
 class DetectorType(Enum):
     cv = "cv"
     tflite = "tflite"
+    edgetpu = "edgetpu"
 
     def __str__(self):
         return self.value
@@ -64,10 +65,13 @@ pyplot.tight_layout()
 pyplot.ion()
 pyplot.show()
 
-if args.detector == DetectorType.cv:
-    detector = CVDetector()
-elif args.detector == DetectorType.tflite:
-    detector = TFLiteDetector()
+detector = {
+    DetectorType.cv: CVDetector(),
+    DetectorType.tflite: TFLiteDetector(),
+    DetectorType.edgetpu: EdgeTpuDetector()
+}[args.detector]
+
+detector.setup()
 
 try:
     while thr.is_alive():
