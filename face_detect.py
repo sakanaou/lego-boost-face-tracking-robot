@@ -39,7 +39,7 @@ parser.add_argument("--classes-of-interest",
     type=int,
     nargs="+",
     required=False,
-    default=0)
+    default=[0])
 parser.add_argument("--score-threshold",
     help="The scoring threshold for the TensorFlow Lite based detectors.",
     type=float,
