@@ -28,7 +28,7 @@ class TFLiteDetector:
         _, self._inputHeight, self._inputWidth, _ = self._interpreter.get_input_details()[0]['shape']
 
     def _setupInterpreter(self):
-        return tflite.Interpreter(model_path="coco_ssd_mobilenet_v1_1.0_quant_2018_06_29/detect.tflite")
+        return tflite.Interpreter(model_path="models/mobilenet_ssd_v2_coco_quant_postprocess.tflite")
 
     def detect(self, image):
         resizedImage = Image.fromarray(image).resize((self._inputWidth, self._inputHeight), Image.ANTIALIAS)
@@ -79,7 +79,7 @@ class EdgeTpuDetector(TFLiteDetector):
         super().__init__(interestedClasses=interestedClasses, scoreThreshold=scoreThreshold)
 
     def _setupInterpreter(self):
-        return tflite.Interpreter(model_path="coco_ssd_mobilenet_v1_1.0_quant_2018_06_29/detect.tflite",
+        return tflite.Interpreter(model_path="models/mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite",
             experimental_delegates=[
                 tflite.load_delegate(EDGETPU_SHARED_LIB, {})
             ])
