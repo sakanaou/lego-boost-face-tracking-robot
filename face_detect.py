@@ -34,6 +34,17 @@ parser.add_argument("--camera",
     type=int,
     required=False,
     default=0)
+parser.add_argument("--classes-of-interest",
+    help="List all classes of interest for the TensorFlow Lite based detectors.",
+    type=int,
+    nargs="+",
+    required=False,
+    default=0)
+parser.add_argument("--score-threshold",
+    help="The scoring threshold for the TensorFlow Lite based detectors.",
+    type=float,
+    required=False,
+    default=0.4)
 args = parser.parse_args()
 
 def capture():
@@ -67,8 +78,8 @@ pyplot.show()
 
 detector = {
     DetectorType.cv: CVDetector(),
-    DetectorType.tflite: TFLiteDetector(),
-    DetectorType.edgetpu: EdgeTpuDetector()
+    DetectorType.tflite: TFLiteDetector(args.classes_of_interest, args.score_threshold),
+    DetectorType.edgetpu: EdgeTpuDetector(args.classes_of_interest, args.score_threshold)
 }[args.detector]
 
 detector.setup()
