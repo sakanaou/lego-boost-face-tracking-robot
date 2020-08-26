@@ -11,6 +11,8 @@ from cv_detector import CVDetector
 from tflite_detector import TFLiteDetector, EdgeTpuDetector
 from bounding_box import BoundingBox
 
+from robot_control import RobotControl
+
 logging.basicConfig(level = logging.INFO)
 currentImage = None
 
@@ -45,6 +47,16 @@ parser.add_argument("--score-threshold",
     type=float,
     required=False,
     default=0.4)
+parser.add_argument("--robot-control",
+    help="Enable robot control.",
+    type=bool,
+    required=False,
+    default=False)
+parser.add_argument("--robot-mac",
+    help="Specify the robot's MAC address.",
+    type=str,
+    required=False,
+    default=None)
 args = parser.parse_args()
 
 def capture():
@@ -84,10 +96,17 @@ detector = {
 
 detector.setup()
 
+robotControl = None
+if args.robot_control:
+    robotControl = RobotControl(args.robot_mac)
+
 try:
     while thr.is_alive():
         boundingBoxes = detector.detect(currentImage)
         boundingBoxes = sorted(boundingBoxes, key=methodcaller("surface"), reverse=True)
+
+        if robotControl and not boundingBoxes:
+            robotControl.stop()
 
         for i, boundingBox in enumerate(boundingBoxes):
             if i == 0:
@@ -103,10 +122,23 @@ try:
                 center = boundingBox.center()
                 imageCenter = (int(currentImage.shape[1] / 2), int(currentImage.shape[0] / 2))
                 cv2.line(currentImage, center, imageCenter, (0, 0, 255,), 2)
-                logging.info("Robot has to move by %s", (abs(imageCenter[0] - center[0]), abs(imageCenter[1] - center[1])))
+
+                horizontal = (center[0] - imageCenter[0]) / currentImage.shape[1]
+                vertical = (center[1] - imageCenter[1]) / currentImage.shape[0]
+                logging.info("Robot has to move by %.3f, %.3f", horizontal, vertical)
+                if robotControl:
+                    if abs(horizontal) > 0.1:
+                        if horizontal < 0:
+                            robotControl.moveRight()
+                        elif horizontal > 0:
+                            robotControl.moveLeft()
+                    else:
+                        robotControl.stop()
 
         plt.set_array(currentImage)
         logging.debug("Updated frame")
         pyplot.pause(0.02)
 finally:
+    if robotControl:
+        del robotControl
     pass
