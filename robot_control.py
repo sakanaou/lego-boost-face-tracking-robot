@@ -26,7 +26,7 @@ class RobotControl:
         log.info("Connected to LEGO Move Hub!")
         self._detect_motor()
         self.motor_running = None
-        self.motorAB_running = None
+        self.motorA_running = None
 
     def __del__(self):
         self.stop()
@@ -49,27 +49,35 @@ class RobotControl:
             self.motor_running = Direction.RIGHT
         return
 
-    def moveUp(self, speed=0.025):
-        if self.motorAB_running != Direction.UP:
+    def moveUp(self, speed=0.05):
+        if self.motorA_running != Direction.UP:
             log.info("Moving LEGO Boost robot UP")
-            self.hub.motor_AB.start_speed(speed)
-            self.motorAB_running = Direction.UP
+            self.hub.motor_A.stop()
+            self.hub.motor_A.start_speed(speed)
+            self.motorA_running = Direction.UP
         return
 
-    def moveDown(self, speed=-0.025):
-        if self.motorAB_running != Direction.DOWN:
+    def moveDown(self, speed=-0.05):
+        if self.motorA_running != Direction.DOWN:
             log.info("Moving LEGO Boost robot DOWN")
-            self.hub.motor_AB.start_speed(speed)
-            self.motorAB_running = Direction.DOWN
+            self.hub.motor_A.stop()
+            self.hub.motor_A.start_speed(speed)
+            self.motorA_running = Direction.DOWN
         return
 
-    def stop(self):
+    def stopHorizontalMovement(self):
         if self.motor and self.motor_running:
             self.motor.stop()
-        if self.motorAB_running:
-            self.hub.motor_AB.stop()
         self.motor_running = None
-        self.motorAB_running = None
+
+    def stopVerticalMovement(self):
+        if self.motorA_running:
+            self.hub.motor_A.stop()
+        self.motorA_running = None
+
+    def stop(self):
+        self.stopHorizontalMovement()
+        self.stopVerticalMovement()
 
     def _detect_motor(self):
         self.motor = None

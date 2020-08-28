@@ -127,13 +127,20 @@ try:
                 vertical = (center[1] - imageCenter[1]) / currentImage.shape[0]
                 logging.info("Robot has to move by %.3f, %.3f", horizontal, vertical)
                 if robotControl:
-                    if abs(horizontal) > 0.1:
+                    if abs(horizontal) > 0.075:
                         if horizontal < 0:
                             robotControl.moveRight()
                         elif horizontal > 0:
                             robotControl.moveLeft()
                     else:
-                        robotControl.stop()
+                        robotControl.stopHorizontalMovement()
+                    if abs(vertical) > 0.075:
+                        if vertical < 0:
+                            robotControl.moveUp()
+                        elif vertical > 0:
+                            robotControl.moveDown()
+                    else:
+                        robotControl.stopVerticalMovement()
 
         plt.set_array(currentImage)
         logging.debug("Updated frame")
