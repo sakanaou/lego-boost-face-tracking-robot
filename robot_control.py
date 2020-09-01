@@ -33,34 +33,38 @@ class RobotControl:
         log.info("Releasing LEGO Move Hub connection...")
         self.conn.disconnect()
 
-    def moveLeft(self, speed=0.08):
+    def moveLeft(self, speed=0.15):
         if self.motor and self.motor_running != Direction.LEFT:
             log.info("Moving LEGO Boost robot to the LEFT")
-            self.motor.stop()
+            if self.motor_running == Direction.RIGHT:
+                self.motor.stop()
             self.motor.start_speed(speed)
             self.motor_running = Direction.LEFT
         return
 
-    def moveRight(self, speed=-0.08):
+    def moveRight(self, speed=-0.15):
         if self.motor and self.motor_running != Direction.RIGHT:
             log.info("Moving LEGO Boost robot to the RIGHT")
-            self.motor.stop()
+            if self.motor_running == Direction.LEFT:
+                self.motor.stop()
             self.motor.start_speed(speed)
             self.motor_running = Direction.RIGHT
         return
 
-    def moveUp(self, speed=0.05):
+    def moveUp(self, speed=-0.15):
         if self.motorA_running != Direction.UP:
             log.info("Moving LEGO Boost robot UP")
-            self.hub.motor_A.stop()
+            if self.motor_running == Direction.DOWN:
+                self.hub.motor_A.stop()
             self.hub.motor_A.start_speed(speed)
             self.motorA_running = Direction.UP
         return
 
-    def moveDown(self, speed=-0.05):
+    def moveDown(self, speed=0.15):
         if self.motorA_running != Direction.DOWN:
             log.info("Moving LEGO Boost robot DOWN")
-            self.hub.motor_A.stop()
+            if self.motor_running == Direction.UP:
+                self.hub.motor_A.stop()
             self.hub.motor_A.start_speed(speed)
             self.motorA_running = Direction.DOWN
         return
